@@ -1,0 +1,21 @@
+# Include required directories
+!.git
+!.dockerignore
+!self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data/
+
+# Exclude all `extracted-data` directory and its contents
+self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/extracted-data/
+
+# Exclude all log files in the dataset
+self-healing-trigger/dataset/system-logs/*.log
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore temporary files
+*.tmp
+*.temp
+*.swp

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: self-healing-deployment
+  labels:
+    app: self-healing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: self-healing
+  template:
+    metadata:
+      labels:
+        app: self-healing
+    spec:
+      containers:
+        - name: self-healing-container
+          image: self-healing-system:1.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ERROR_THRESHOLD
+              value: "100"
+            - name: WARNING_THRESHOLD
+              value: "500"
+          volumeMounts:
+            - name: dataset-volume
+              mountPath: /app/dataset
+      volumes:
+        - name: dataset-volume
+          hostPath:
+            path: /Users/obinnajohnphill/Desktop/Doctoral Study (PhD)/Nottingham Trent University/Programs and Plugins/Self-Healing-Remedial-Actions
+            type: Directory
