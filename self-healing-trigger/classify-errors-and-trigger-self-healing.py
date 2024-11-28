@@ -156,8 +156,8 @@ def process_logs():
                 print(f"Error loading {filename}: {e}")
 
     # Define thresholds
-    error_threshold = 0  # Lower threshold to ensure Windows is triggered
-    warning_threshold = 0
+    error_threshold = 100
+    warning_threshold = 500
 
     # Process each system
     for system_name, df in system_dfs.items():

@@ -38,7 +38,9 @@ cd <repository-folder>
 1. **Build the Docker Image**:
 
    ```bash
-   docker build -t self-healing-app .
+   docker build -t self-healing-app . 
+   
+   or without cache:  docker build -t self-healing-app . --no-cache
    ```
 
 2. **Run the Container**:

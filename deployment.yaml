@@ -30,4 +30,4 @@ spec:
         - name: dataset-volume
           hostPath:
             path: "/Users/obinnajohnphill/Desktop/Doctoral Study (PhD)/Nottingham Trent University/Programs and Plugins/Self-Healing-Remedial-Actions"
-            type: Directory
+            type: Director
