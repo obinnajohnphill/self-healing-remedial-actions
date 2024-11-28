@@ -1,19 +1,22 @@
-FROM python:3.9-slim
+FROM ubuntu:20.04
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Add adb for Android
+RUN apt-get update && apt-get install -y adb
 
-# Copy only the main application folder
+# Install necessary tools
+RUN apt-get update && apt-get install -y tzdata sudo systemd && apt-get clean
+
+# Install Python
+RUN apt-get install -y python3 python3-pip
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy the script
 COPY self-healing-trigger/ ./self-healing-trigger/
 
-# Add compressed dataset and decompress it to save space during the build
-#COPY dataset.tar.gz ./self-healing-trigger/
-#RUN tar -xzf ./self-healing-trigger/dataset.tar.gz -C ./self-healing-trigger/ && rm ./self-healing-trigger/dataset.tar.gz
-
-# Set the command to run the main script
-CMD ["python", "self-healing-trigger/classify-errors-and-trigger-self-healing.py"]
-
+CMD ["python3", "self-healing-trigger/classify-errors-and-trigger-self-healing.py"]
