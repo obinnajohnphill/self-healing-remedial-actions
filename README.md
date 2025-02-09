@@ -1,4 +1,3 @@
-
 # Self-Healing Remedial Actions
 
 This repository contains an implementation of a self-healing system that performs automated remedial actions (e.g., system updates, service restarts, and resource optimization) upon detecting anomalies in system logs.
@@ -10,6 +9,7 @@ This repository contains an implementation of a self-healing system that perform
 - **Modular Design**: Built with Python scripts for flexibility and ease of use.
 - **Dockerized Environment**: Easily deployable using Docker.
 - **Kubernetes Support**: Deploy the application to a Kubernetes cluster for scalability and fault tolerance.
+- **Grafana Monitoring**: Track system metrics and remediation actions with Grafana dashboards.
 
 ---
 
@@ -18,7 +18,7 @@ This repository contains an implementation of a self-healing system that perform
 Before setting up the application, ensure the following tools are installed:
 
 1. **Python**: Version 3.9 or above
-2. **Docker**: Installed and running
+2. **Docker & Docker Compose**: Installed and running
 3. **Kubernetes**: Installed and configured
 4. **Git**: To clone the repository
 
@@ -33,25 +33,67 @@ git clone <repository-url>
 cd <repository-folder>
 ```
 
-### 2. Build and Run with Docker
+## Running the Self-Healing System, Grafana, and Prometheus
 
-1. **Build the Docker Image**:
+### 1. **Build the Docker Image Locally**
+Run the following command to build the self-healing system image:
+```bash
+docker build -t self-healing-system:1.0 .
+```
 
-   ```bash
-   docker build -t self-healing-app . 
-   
-   or without cache:  docker build -t self-healing-app . --no-cache
-   ```
+### 2. **Start the System with Docker Compose**
+Run the following command to start all services:
+```bash
+docker-compose up -d
+```
+This will start:
+- **Self-Healing System** for log processing and remedial actions
+- **Prometheus** for metrics collection
+- **Grafana** for real-time visualization
 
-2. **Run the Container**:
+### 3. **Access Prometheus and Grafana**
+- **Prometheus Dashboard:** [http://localhost:9090](http://localhost:9090)
+- **Grafana Dashboard:** [http://localhost:3000](http://localhost:3000)
+  - Username: `admin`
+  - Password: `admin`
 
-   ```bash
-   docker run --rm -it self-healing-app
-   ```
+### 4. **Verify Running Containers**
+Ensure that all containers are running:
+```bash
+docker ps
+```
 
-The application will automatically start analyzing logs and executing remedial actions.
+### 5. **Check Logs for Debugging**
+If any service fails to start, check logs using:
+```bash
+docker-compose logs -f
+```
 
----
+### 6. **Stop and Remove All Services**
+To shut down and remove all running containers:
+```bash
+docker-compose down
+```
+
+### 7. **Adding Prometheus as a Data Source in Grafana**
+To visualize the self-healing system metrics in Grafana:
+1. Open Grafana at [http://localhost:3000](http://localhost:3000).
+2. Login with username `admin` and password `admin`.
+3. Go to **Configuration** > **Data Sources**.
+4. Click **Add data source**.
+5. Select **Prometheus**.
+6. Set the **URL** to `http://prometheus:9090`.
+7. Click **Save & Test**.
+8. If successful, you can now create dashboards using Prometheus metrics.
+
+### 8. **Import Grafana Dashboard**
+To monitor Kubernetes and Docker performance:
+1. In Grafana, go to **Dashboards** > **Import**.
+2. Enter the dashboard ID **315** (or another relevant ID from Grafana Labs).
+3. Select Prometheus as the data source.
+4. Click **Import** to start visualizing system metrics.
+
+Your Grafana dashboard should now display real-time metrics from the self-healing system, including error counts, warnings, and remedial actions performed.
 
 ## Kubernetes Deployment
 
@@ -67,13 +109,6 @@ For OrbStack, ensure Kubernetes is enabled and running. Verify the node is ready
 
 ```bash
 kubectl get nodes -o wide
-```
-
-You should see output similar to this:
-
-```plaintext
-NAME       STATUS   ROLES                  AGE    VERSION        INTERNAL-IP    EXTERNAL-IP   OS-IMAGE   KERNEL-VERSION                        CONTAINER-RUNTIME
-orbstack   Ready    control-plane,master   2m7s   v1.29.3+orb1   198.19.249.2   <none>        OrbStack   6.11.6-orbstack-00279-g28c6c77332e6   docker://27.3.1
 ```
 
 ### 2. Deploy the Application
@@ -93,52 +128,26 @@ orbstack   Ready    control-plane,master   2m7s   v1.29.3+orb1   198.19.249.2   
 3. Expose the service using NodePort:
 
    ```bash
-   kubectl expose pod nginx --type=NodePort --port=80
+   kubectl expose pod self-healing-container --type=NodePort --port=80
    ```
 
-### 3. Access the Service
+### 3. Access Grafana Dashboard
 
-1. Get the service details:
+1. Get the **Grafana service port**:
 
    ```bash
-   kubectl get svc nginx
+   kubectl get svc grafana
    ```
 
-   Example output:
+2. Access Grafana at:
 
-   ```plaintext
-   NAME    TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-   nginx   NodePort   10.96.0.1       <none>        80:31234/TCP   2m
+   ```
+   http://<INTERNAL-IP>:<NodePort>
    ```
 
-2. Access the service at `http://<INTERNAL-IP>:<NodePort>`. For OrbStack, replace `<INTERNAL-IP>` with `198.19.249.2` (from `kubectl get nodes`) and `<NodePort>` with the service port (e.g., `31234`).
+   Use `admin` as the username and password.
 
-   Example:
-
-   ```bash
-   curl http://198.19.249.2:31234
-   ```
-
-   You should see the Nginx welcome page if the service is running correctly.
-
----
-
-## Troubleshooting
-
-1. **Pod Not Running**: Check pod logs for errors:
-
-   ```bash
-   kubectl logs <pod-name>
-   ```
-
-2. **Service Not Accessible**: Ensure the NodePort is open and the Kubernetes configuration allows external traffic.
-
-3. **Restart Kubernetes Services**: For OrbStack, restart Kubernetes or Docker Desktop if needed:
-
-   ```bash
-   minikube stop
-   minikube start
-   ```
+3. Import the Kubernetes Monitoring Dashboard from Grafana Labs by using the **dashboard ID: 315**.
 
 ---
 
@@ -154,6 +163,8 @@ orbstack   Ready    control-plane,master   2m7s   v1.29.3+orb1   198.19.249.2   
 ├── requirements.txt
 ├── Dockerfile
 ├── deployment.yaml
+├── docker-compose.yaml
+├── prometheus.yml
 ├── README.md
 ```
 

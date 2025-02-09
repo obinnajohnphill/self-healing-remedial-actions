@@ -1,9 +1,14 @@
 version: '3.8'
+
 services:
   self-healing:
     container_name: self-healing-container
-    image: self-healing-system:1.0
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
+    ports:
+      - "8000:8000"  # Expose metrics endpoint
     environment:
       - ERROR_THRESHOLD=100
       - WARNING_THRESHOLD=500
@@ -12,6 +17,8 @@ services:
     depends_on:
       - prometheus
       - grafana
+    networks:
+      - monitoring
 
   prometheus:
     image: prom/prometheus:latest
@@ -21,6 +28,10 @@ services:
     ports:
       - "9090:9090"
     restart: always
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - monitoring
 
   grafana:
     image: grafana/grafana:latest
@@ -34,6 +45,13 @@ services:
     restart: always
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - monitoring
 
 volumes:
   grafana-data:
+
+networks:
+  monitoring:
+    driver: bridge

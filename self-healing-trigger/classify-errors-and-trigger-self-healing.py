@@ -4,6 +4,17 @@
 import pandas as pd
 import os
 import subprocess
+from flask import Flask
+from prometheus_client import Counter, generate_latest, REGISTRY, make_wsgi_app
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+
+# Initialize Flask App for Prometheus Metrics
+app = Flask(__name__)
+
+# Define Prometheus Metrics
+ERRORS_DETECTED = Counter("errors_detected", "Number of errors detected", ["system"])
+WARNINGS_DETECTED = Counter("warnings_detected", "Number of warnings detected", ["system"])
+REMEDIAL_ACTIONS_TRIGGERED = Counter("remedial_actions_triggered", "Number of remedial actions taken", ["system"])
 
 # OS-specific remedial action registry
 OS_REMEDIAL_ACTIONS = {}
@@ -24,6 +35,7 @@ def is_tool_available(tool_name):
 @register_os_action("Android")
 def remedial_actions_android(system_name):
     print(f"Performing remedial actions for {system_name}...")
+    REMEDIAL_ACTIONS_TRIGGERED.labels(system=system_name).inc()
     try:
         if is_tool_available("adb"):
             print("Clearing app data...")
@@ -48,6 +60,7 @@ def remedial_actions_android(system_name):
 @register_os_action("Linux")
 def remedial_actions_linux(system_name):
     print(f"Performing remedial actions for {system_name}...")
+    REMEDIAL_ACTIONS_TRIGGERED.labels(system=system_name).inc()
     try:
         print("Applying system updates...")
         subprocess.run(["apt-get", "update", "-y"], check=True)
@@ -77,6 +90,7 @@ def remedial_actions_linux(system_name):
 @register_os_action("Mac")
 def remedial_actions_mac(system_name):
     print(f"Performing remedial actions for {system_name}...")
+    REMEDIAL_ACTIONS_TRIGGERED.labels(system=system_name).inc()
     try:
         print("Simulated: softwareupdate -i -a")
         if is_tool_available("apachectl"):
@@ -95,6 +109,7 @@ def remedial_actions_mac(system_name):
 @register_os_action("Windows")
 def remedial_actions_windows(system_name):
     print(f"Performing remedial actions for {system_name}...")
+    REMEDIAL_ACTIONS_TRIGGERED.labels(system=system_name).inc()
     try:
         if is_tool_available("powershell"):
             # System Update
@@ -166,6 +181,9 @@ def process_logs():
             num_errors = df['error'].sum()
             num_warnings = df['warning'].sum()
 
+            ERRORS_DETECTED.labels(system=system_name).inc(num_errors)
+            WARNINGS_DETECTED.labels(system=system_name).inc(num_warnings)
+
             print(f"Errors: {num_errors}, Warnings: {num_warnings}")
             if num_errors > error_threshold:
                 print(f"Triggering self-healing for {system_name} due to high errors.")
@@ -180,6 +198,9 @@ def process_logs():
 
     print("Self-healing application completed successfully.")
 
-# Main function
+# Expose Prometheus Metrics Endpoint
+app.wsgi_app = DispatcherMiddleware(app, {"/metrics": make_wsgi_app()})
+
 if __name__ == "__main__":
     process_logs()
+    app.run(host="0.0.0.0", port=8000)

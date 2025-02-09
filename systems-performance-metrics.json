@@ -1,0 +1,99 @@
+{
+    "dashboard": {
+      "id": null,
+      "uid": "self-healing-dashboard",
+      "title": "Self-Healing System Monitoring",
+      "tags": ["self-healing", "monitoring"],
+      "timezone": "browser",
+      "schemaVersion": 36,
+      "version": 1,
+      "panels": [
+        {
+          "title": "System Errors Over Time",
+          "type": "timeseries",
+          "targets": [{
+            "expr": "rate(errors_detected_total[5m])",
+            "legendFormat": "Errors",
+            "interval": "5m"
+          }]
+        },
+        {
+          "title": "System Warnings Over Time",
+          "type": "timeseries",
+          "targets": [{
+            "expr": "rate(warnings_detected_total[5m])",
+            "legendFormat": "Warnings",
+            "interval": "5m"
+          }]
+        },
+        {
+          "title": "Total Remedial Actions Taken",
+          "type": "stat",
+          "targets": [{
+            "expr": "rate(remedial_actions_triggered_total[5m])",
+            "legendFormat": "Remedial Actions",
+            "interval": "5m"
+          }]
+        },
+        {
+          "title": "Error-to-Remediation Ratio",
+          "type": "gauge",
+          "targets": [{
+            "expr": "rate(remedial_actions_triggered_total[5m]) / rate(errors_detected_total[5m])",
+            "legendFormat": "Ratio",
+            "interval": "5m"
+          }]
+        },
+        {
+          "title": "System-Wide Error Percentage",
+          "type": "piechart",
+          "targets": [{
+            "expr": "(errors_detected_total / sum(errors_detected_total)) * 100",
+            "legendFormat": "Error Percentage",
+            "interval": "5m"
+          }]
+        },
+        {
+          "title": "Top System by Error Rate",
+          "type": "table",
+          "targets": [{
+            "expr": "topk(1, rate(errors_detected_total[5m]))",
+            "legendFormat": "Top Error System",
+            "interval": "5m"
+          }]
+        },
+        {
+          "title": "Recent Errors and Warnings",
+          "type": "logs",
+          "targets": [{
+            "expr": "errors_detected_total{system=~'.*'}[1h]",
+            "legendFormat": "Errors",
+            "interval": "1h"
+          }, {
+            "expr": "warnings_detected_total{system=~'.*'}[1h]",
+            "legendFormat": "Warnings",
+            "interval": "1h"
+          }]
+        },
+        {
+          "title": "System Health Score",
+          "type": "gauge",
+          "targets": [{
+            "expr": "(1 - (rate(errors_detected_total[5m]) / (rate(errors_detected_total[5m]) + rate(warnings_detected_total[5m])))) * 100",
+            "legendFormat": "Health Score",
+            "interval": "5m"
+          }]
+        },
+        {
+          "title": "Number of Self-Healing Events Per System",
+          "type": "bar",
+          "targets": [{
+            "expr": "count(remedial_actions_triggered_total)",
+            "legendFormat": "Self-Healing Events",
+            "interval": "5m"
+          }]
+        }
+      ]
+    }
+  }
+  
