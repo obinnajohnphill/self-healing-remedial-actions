@@ -41,6 +41,20 @@ Run the following command to build the self-healing system image:
 docker build -t self-healing-system:1.0 .
 ```
 
+### 2. **Build the Docker Image**:
+
+   ```bash
+   docker build -t self-healing-app . 
+   
+   or without cache:  docker build -t self-healing-app . --no-cache
+   ```
+
+### 3. **Run the Container**:
+
+   ```bash
+   docker run --rm -it self-healing-app
+   ```
+
 ### 2. **Start the System with Docker Compose**
 Run the following command to start all services:
 ```bash
