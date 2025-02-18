@@ -28,7 +28,19 @@ scrape_configs:
   # Kube-State-Metrics (For Kubernetes Object Monitoring)
   - job_name: 'kube-state-metrics'
     static_configs:
-      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
+      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8000']
+
+  # Kubelet (Collects Node-Level Metrics)
+  - job_name: 'kubelet'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_node_name]
+        action: replace
+        target_label: node
 
   # Node Exporter (For Host System Metrics)
   - job_name: 'node-exporter'
@@ -40,7 +52,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Docker Container Monitoring (Optional)
+  # Docker Container Monitoring
   - job_name: 'docker'
     static_configs:
       - targets: ['host.docker.internal:9323']

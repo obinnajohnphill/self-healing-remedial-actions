@@ -125,6 +125,19 @@ For OrbStack, ensure Kubernetes is enabled and running. Verify the node is ready
 kubectl get nodes -o wide
 ```
 
+#### 1.1. Deploy Kubernetes Metrics
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install kube-state-metrics prometheus-community/kube-state-metrics --namespace kube-system
+
+
+#### 1.1. Deploy Node-Exporter Metrics
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install node-exporter prometheus-community/prometheus-node-exporter --namespace kube-system
+
+
+
 ### 2. Deploy the Application
 
 1. Apply the deployment configuration:
