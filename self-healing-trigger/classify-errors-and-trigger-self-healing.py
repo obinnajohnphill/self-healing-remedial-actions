@@ -67,25 +67,22 @@ def remedial_actions_linux(system_name):
         subprocess.run(["apt-get", "upgrade", "-y"], check=True)
 
         print("Restarting SSH service...")
-        if is_tool_available("service"):
-            result = subprocess.run(
-                ["service", "ssh", "restart"],
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            if "unrecognized service" in result.stderr:
-                print("Simulated: SSH service restart (unrecognized service)")
+        if is_tool_available("systemctl"):
+            subprocess.run(["systemctl", "restart", "ssh"], check=True)
+        elif is_tool_available("service"):
+            subprocess.run(["service", "ssh", "restart"], check=True)
         else:
-            print("Simulated: service ssh restart")
+            print("No suitable service manager found to restart SSH.")
 
         print("Performing disk clean-up...")
-        subprocess.run(["rm", "-rf", "/var/tmp/*"], check=True)
+        if os.path.isdir("/var/tmp") and os.access("/var/tmp", os.W_OK):
+            subprocess.run(["rm", "-rf", "/var/tmp/*"], check=True)
+        else:
+            print("Skipped: /var/tmp is not available or writable.")
 
         print(f"{system_name} remedial actions completed successfully.")
     except Exception as e:
         print(f"Error performing {system_name} remedial actions: {e}")
-
 # Mac-specific actions
 @register_os_action("Mac")
 def remedial_actions_mac(system_name):

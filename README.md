@@ -69,7 +69,7 @@ This will start:
 - **Prometheus Dashboard:** [http://localhost:9090](http://localhost:9090)
 - **Grafana Dashboard:** [http://localhost:3000](http://localhost:3000)
   - Username: `admin`
-  - Password: `admin`
+  - Password: `obinna`
 
 ### 4. **Verify Running Containers**
 Ensure that all containers are running:
