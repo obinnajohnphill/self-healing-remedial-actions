@@ -178,7 +178,7 @@ def process_logs():
             num_errors = df['error'].sum()
             num_warnings = df['warning'].sum()
 
-            ERRORS_DETECTED.labels(system=system_name).inc(num_errors)
+            ERRORS_DETECTED.labels(system=syste                                                                                                                                                                                m_name).inc(num_errors)
             WARNINGS_DETECTED.labels(system=system_name).inc(num_warnings)
 
             print(f"Errors: {num_errors}, Warnings: {num_warnings}")

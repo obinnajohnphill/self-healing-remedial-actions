@@ -1,3 +1,10 @@
+<p align="center">
+  <img src="cross-logo-dark.png" alt="CROSS Logo" width="250"/>
+</p>
+
+<h1 align="center">CROSS</h1>
+<p align="center"><strong>Cross-platform Remediation and Observability Self-Healing System</strong></p>
+
 # Self-Healing Remedial Actions
 
 This repository contains an implementation of a self-healing system that performs automated remedial actions (e.g., system updates, service restarts, and resource optimization) upon detecting anomalies in system logs.
@@ -10,6 +17,7 @@ This repository contains an implementation of a self-healing system that perform
 - **Dockerized Environment**: Easily deployable using Docker.
 - **Kubernetes Support**: Deploy the application to a Kubernetes cluster for scalability and fault tolerance.
 - **Grafana Monitoring**: Track system metrics and remediation actions with Grafana dashboards.
+
 
 ---
 
@@ -144,6 +152,11 @@ helm install node-exporter prometheus-community/prometheus-node-exporter --names
 
    ```bash
    kubectl apply -f deployment.yaml
+
+   or
+
+   docker-compose -f deployment.yaml up -d
+
    ```
 
 2. Verify the deployment and pods:
