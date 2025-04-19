@@ -20,7 +20,14 @@ This repository contains an implementation of a self-healing system that perform
 - **Kubernetes Support**: Deploy the application to a Kubernetes cluster for scalability and fault tolerance.
 - **Grafana Monitoring**: Track system metrics and remediation actions with Grafana dashboards.
 
-📁 Dataset Download: [Android & CPS Logs (Zenodo)](https://doi.org/10.5281/zenodo.xxxxxxxx)
+## 📁 Dataset
+
+The full dataset used in this project, including raw logs, extracted features, and preprocessed data, is available on Zenodo:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15249598.svg)](https://doi.org/10.5281/zenodo.15249598)
+
+> **CROSS Dataset:** Multi-Platform System Logs and Preprocessed Data for Self-Healing Evaluation
+
 
 
 ## Architectural Overview
