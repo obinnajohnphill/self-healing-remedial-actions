@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import subprocess
 from flask import Flask
-from prometheus_client import Counter, generate_latest, REGISTRY, make_wsgi_app
+from prometheus_client import Counter, make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 # Initialize Flask App for Prometheus Metrics
@@ -28,10 +28,8 @@ def register_os_action(os_name):
 
 # Function to check if a tool exists
 def is_tool_available(tool_name):
-    """Check if a tool is available in the environment."""
     return subprocess.call(["which", tool_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
 
-# Android-specific actions
 @register_os_action("Android")
 def remedial_actions_android(system_name):
     print(f"Performing remedial actions for {system_name}...")
@@ -56,146 +54,91 @@ def remedial_actions_android(system_name):
         print("Simulated: adb shell pm clear com.example.app")
         print("Simulated: adb reboot")
 
-# Linux-specific actions
 @register_os_action("Linux")
 def remedial_actions_linux(system_name):
     print(f"Performing remedial actions for {system_name}...")
     REMEDIAL_ACTIONS_TRIGGERED.labels(system=system_name).inc()
     try:
-        print("Applying system updates...")
         subprocess.run(["apt-get", "update", "-y"], check=True)
         subprocess.run(["apt-get", "upgrade", "-y"], check=True)
-
-        print("Restarting SSH service...")
         if is_tool_available("systemctl"):
             subprocess.run(["systemctl", "restart", "ssh"], check=True)
         elif is_tool_available("service"):
             subprocess.run(["service", "ssh", "restart"], check=True)
-        else:
-            print("No suitable service manager found to restart SSH.")
-
-        print("Performing disk clean-up...")
         if os.path.isdir("/var/tmp") and os.access("/var/tmp", os.W_OK):
             subprocess.run(["rm", "-rf", "/var/tmp/*"], check=True)
-        else:
-            print("Skipped: /var/tmp is not available or writable.")
-
-        print(f"{system_name} remedial actions completed successfully.")
     except Exception as e:
         print(f"Error performing {system_name} remedial actions: {e}")
-# Mac-specific actions
+
 @register_os_action("Mac")
 def remedial_actions_mac(system_name):
     print(f"Performing remedial actions for {system_name}...")
     REMEDIAL_ACTIONS_TRIGGERED.labels(system=system_name).inc()
     try:
-        print("Simulated: softwareupdate -i -a")
         if is_tool_available("apachectl"):
-            print("Restarting services (example for Apache)...")
             subprocess.run(["sudo", "apachectl", "restart"], check=True)
-        else:
-            print("Simulated: apachectl restart")
-        print("Performing disk clean-up...")
         subprocess.run(["rm", "-rf", "/tmp/*"], check=True)
-
-        print(f"{system_name} remedial actions completed successfully.")
     except Exception as e:
         print(f"Error performing {system_name} remedial actions: {e}")
 
-# Windows-specific actions
 @register_os_action("Windows")
 def remedial_actions_windows(system_name):
     print(f"Performing remedial actions for {system_name}...")
     REMEDIAL_ACTIONS_TRIGGERED.labels(system=system_name).inc()
     try:
         if is_tool_available("powershell"):
-            # System Update
-            print("Applying updates...")
             subprocess.run(["powershell", "-Command", "Install-WindowsUpdate -AcceptAll"], check=True)
-
-            # Service Restart
-            print("Restarting IIS service...")
             subprocess.run(["powershell", "-Command", "Restart-Service -Name 'W3SVC'"], check=True)
-
-            # Disk Cleanup
-            print("Performing disk clean-up...")
             subprocess.run(["powershell", "-Command", "cleanmgr /sagerun:1"], check=True)
         else:
             raise Exception("PowerShell not available.")
     except Exception as e:
         print(f"Error performing {system_name} remedial actions: {e}")
-        print("Simulated: Install-WindowsUpdate -AcceptAll")
-        print("Simulated: Restart-Service -Name 'W3SVC'")
-        print("Simulated: cleanmgr /sagerun:1")
+        print("Simulated: PowerShell commands")
 
-# Fallback for unsupported systems
 def remedial_actions_fallback(system_name):
     print(f"No specific remedial actions defined for {system_name}.")
 
-# Main remedial actions handler
 def perform_remedial_actions(system_name):
     action_handler = OS_REMEDIAL_ACTIONS.get(system_name, remedial_actions_fallback)
     action_handler(system_name)
 
-# Load and process system logs
 def process_logs():
     print("Starting the self-healing application...")
-
-    # Define the preprocessed log directory
     preprocessed_dir = '/app/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data'
-
-    # Check if the directory exists
     if not os.path.exists(preprocessed_dir):
         print(f"Error: The directory {preprocessed_dir} does not exist.")
         exit(1)
 
-    print(f"Preprocessed directory found: {preprocessed_dir}")
-
-    # Create a dictionary to store dataframes for each system
     system_dfs = {}
-
-    # Load the preprocessed log files and create separate dataframes for each system
     for filename in os.listdir(preprocessed_dir):
         if filename.endswith('.csv'):
             filepath = os.path.join(preprocessed_dir, filename)
-            print(f"Loading file: {filepath}")
             try:
                 df = pd.read_csv(filepath)
                 system_name = os.path.splitext(filename)[0].replace("_preprocessed", "")
                 system_dfs[system_name] = df
-                print(f"Loaded data for system: {system_name}")
             except Exception as e:
                 print(f"Error loading {filename}: {e}")
 
-    # Define thresholds
     error_threshold = 100
     warning_threshold = 500
 
-    # Process each system
     for system_name, df in system_dfs.items():
-        print(f"\nProcessing data for {system_name}...")
         try:
             num_errors = df['error'].sum()
             num_warnings = df['warning'].sum()
-
-            ERRORS_DETECTED.labels(system=syste                                                                                                                                                                                m_name).inc(num_errors)
+            ERRORS_DETECTED.labels(system=system_name).inc(num_errors)
             WARNINGS_DETECTED.labels(system=system_name).inc(num_warnings)
-
-            print(f"Errors: {num_errors}, Warnings: {num_warnings}")
             if num_errors > error_threshold:
-                print(f"Triggering self-healing for {system_name} due to high errors.")
                 perform_remedial_actions(system_name)
             elif num_warnings > warning_threshold:
-                print(f"Triggering self-healing for {system_name} due to high warnings.")
                 perform_remedial_actions(system_name)
             else:
                 print(f"No remedial actions required for {system_name}.")
         except Exception as e:
             print(f"Error processing data for {system_name}: {e}")
 
-    print("Self-healing application completed successfully.")
-
-# Expose Prometheus Metrics Endpoint
 app.wsgi_app = DispatcherMiddleware(app, {"/metrics": make_wsgi_app()})
 
 if __name__ == "__main__":
