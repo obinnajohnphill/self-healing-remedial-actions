@@ -19,6 +19,15 @@ This repository contains an implementation of a self-healing system that perform
 - **Grafana Monitoring**: Track system metrics and remediation actions with Grafana dashboards.
 
 
+## Architectural Overview
+
+<p align="center">
+  <img src="proposed_system600.png" alt="CROSS Architecture Diagram" width="100%"/>
+</p>
+
+**Figure**: *Architectural Overview of the CROSS Framework.*  
+A modular design showing OS-specific execution paths and threshold-driven remediation triggers. The system integrates anomaly detection, log vectorisation, rule-based evaluation, and a unified dispatcher to automate recovery actions across Android, Linux, macOS, and Windows. Metrics are exported to Prometheus and visualised via Grafana.
+
 ---
 
 ## Prerequisites
