@@ -5,7 +5,9 @@
 <h1 align="center">CROSS</h1>
 <p align="center"><strong>Cross-platform Remediation and Observability Self-Healing System</strong></p>
 
-# Self-Healing Remedial Actions
+<p align="center">
+  <em>An intelligent, ML-driven self-healing framework for Android, Linux, macOS, and Windows, integrating real-time observability and automated cross-platform remediation.</em>
+</p>
 
 This repository contains an implementation of a self-healing system that performs automated remedial actions (e.g., system updates, service restarts, and resource optimization) upon detecting anomalies in system logs.
 
