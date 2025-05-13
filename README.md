@@ -29,7 +29,6 @@ The full dataset used in this project, including raw logs, extracted features, a
 > **CROSS Dataset:** Multi-Platform System Logs and Preprocessed Data for Self-Healing Evaluation
 
 
-
 ## Architectural Overview
 
 <p align="center">
@@ -158,11 +157,29 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 helm install kube-state-metrics prometheus-community/kube-state-metrics --namespace kube-system
 
+helm upgrade prometheus prometheus-community/prometheus \
+  --namespace monitoring \
+  --set "serverFiles.prometheus\.yml.scrape_configs[3].static_configs[0].targets[0]=kube-state-metrics.kube-system.svc.cluster.local:8080"
 
-#### 1.1. Deploy Node-Exporter Metrics
+
+
+#### 1.2. Deploy Node-Exporter Metrics
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm install node-exporter prometheus-community/prometheus-node-exporter --namespace kube-system
+
+
+
+#### 1.3. Install Prometheus in a namespace (e.g. monitoring)
+kubectl create namespace monitoring
+helm install prometheus prometheus-community/prometheus --namespace monitoring
+
+##### 1.3.1 Verify installation
+kubectl get pods -n monitoring
+
+
+##### 1.3.1 Restart command (after install)
+kubectl rollout restart deployment prometheus-server -n monitoring
 
 
 

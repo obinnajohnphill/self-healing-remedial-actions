@@ -25,12 +25,12 @@ scrape_configs:
         action: replace
         target_label: pod
 
-  # Kube-State-Metrics (For Kubernetes Object Monitoring)
+  # Kube-State-Metrics (for Kubernetes object state)
   - job_name: 'kube-state-metrics'
     static_configs:
-      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8000']
+      - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
 
-  # Kubelet (Collects Node-Level Metrics)
+  # Kubelet (collects node-level metrics)
   - job_name: 'kubelet'
     scheme: https
     tls_config:
@@ -42,10 +42,14 @@ scrape_configs:
         action: replace
         target_label: node
 
-  # Node Exporter (For Host System Metrics)
+  # Node Exporter (for host system metrics)
   - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter.kube-system.svc.cluster.local:9100']
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_namespace]
+        action: keep
+        regex: prometheus-node-exporter;kube-system
 
   # Prometheus System Metrics
   - job_name: 'prometheus'
