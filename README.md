@@ -9,25 +9,85 @@
   <em>An intelligent, ML-driven self-healing framework for Android, Linux, macOS, and Windows, integrating real-time observability and automated cross-platform remediation.</em>
 </p>
 
-This repository contains an implementation of a self-healing system that performs automated remedial actions (e.g., system updates, service restarts, and resource optimization) upon detecting anomalies in system logs.
+This repository contains an implementation of a self-healing system that performs automated remedial actions (e.g., system updates, service restarts, and resource optimisation) upon detecting anomalies in system logs.
+
+---
 
 ## Features
 
-- **Log Analysis**: Detects errors and warnings from system logs.
-- **Automated Remedial Actions**: Executes actions such as restarting services, system updates, and resource cleanup.
-- **Modular Design**: Built with Python scripts for flexibility and ease of use.
-- **Dockerized Environment**: Easily deployable using Docker.
-- **Kubernetes Support**: Deploy the application to a Kubernetes cluster for scalability and fault tolerance.
-- **Grafana Monitoring**: Track system metrics and remediation actions with Grafana dashboards.
+- **Log Analysis** — Detects errors and warnings from system logs.
+- **Automated Remedial Actions** — Executes actions such as restarting services, system updates, and resource clean-up.
+- **Modular Design** — Built with Python scripts for flexibility and ease of use.
+- **Dockerised Environment** — Easily deployable using Docker.
+- **Kubernetes Support** — Optional cluster deployment for scalability and fault tolerance.
+- **Grafana Monitoring** — Track metrics and remediation actions with Grafana dashboards.
+
+---
 
 ## 📁 Dataset
 
-The full dataset used in this project, including raw logs, extracted features, and preprocessed data, is available on Zenodo:
+The preprocessed dataset used for experiments (multi-platform logs + features) is available on Zenodo:
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15249598.svg)](https://doi.org/10.5281/zenodo.15249598)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15249598.svg)](https://doi.org/10.5281/zenodo.15249598)  
+**CROSS Dataset:** Multi-Platform System Logs and Preprocessed Data for Self-Healing Evaluation.
 
-> **CROSS Dataset:** Multi-Platform System Logs and Preprocessed Data for Self-Healing Evaluation
+> **Source datasets:** derived from the Loghub collection curated by LOGPAI (ISSRE 2023). See <https://github.com/logpai/loghub> for terms and citation.
 
+---
+
+## 🔁 Reproducibility (No Code Changes)
+
+CROSS expects the **preprocessed logs** to be available inside the repository at:
+
+```
+self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data
+```
+
+Create the folders and place the CSVs from the Zenodo DOI there.
+
+```bash
+# from the repo root
+mkdir -p self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data
+# copy your downloaded CSVs into that 'preprocessed-data' folder
+```
+
+### Option A — Docker (recommended)
+
+Build and run without modifying project files. Bind-mount the dataset folder so the container sees the expected path:
+
+```bash
+# build
+docker build -t self-healing-app .
+
+# run (read-only mount of the dataset)
+docker run --rm -it   -v "$(pwd)/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data:/app/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data:ro"   self-healing-app
+```
+
+### Option B — Docker Compose (keep repo pristine)
+
+Create a **local** override file (untracked) to inject the dataset mount:
+
+```yaml
+# docker-compose.local.yaml  (do not commit)
+services:
+  app:
+    volumes:
+      - ./self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data:/app/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data:ro
+```
+
+Run with both files:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d --build
+```
+
+### Sanity checks
+
+- The container should **not** error with “file/dir not found”.  
+- `docker logs <container>` should show it picked up files from `/app/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data`.  
+- If enabled, a metrics endpoint will be printed in the logs.
+
+---
 
 ## Architectural Overview
 
@@ -42,189 +102,109 @@ A modular design showing OS-specific execution paths and threshold-driven remedi
 
 ## Prerequisites
 
-Before setting up the application, ensure the following tools are installed:
-
-1. **Python**: Version 3.9 or above
-2. **Docker & Docker Compose**: Installed and running
-3. **Kubernetes**: Installed and configured
-4. **Git**: To clone the repository
+- **Python** ≥ 3.9  
+- **Docker & Docker Compose**  
+- **Kubernetes** (optional, for cluster deployment)  
+- **Git**
 
 ---
 
-## Setup Instructions
-
-### 1. Clone the Repository
+## Setup
 
 ```bash
 git clone <repository-url>
 cd <repository-folder>
+
+# prepare dataset folder
+mkdir -p self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data
+# copy Zenodo CSVs into that folder
 ```
+
+---
 
 ## Running the Self-Healing System, Grafana, and Prometheus
 
-### 1. **Build the Docker Image Locally**
-Run the following command to build the self-healing system image:
+### 1) Build the Docker image
+
 ```bash
-docker build -t self-healing-system:1.0 .
+docker build -t self-healing-app .
+# or without cache:
+# docker build --no-cache -t self-healing-app .
 ```
 
-### 2. **Build the Docker Image**:
+### 2) Run the container (dataset mount)
 
-   ```bash
-   docker build -t self-healing-app . 
-   
-   or without cache:  docker build -t self-healing-app . --no-cache
-   ```
-
-### 3. **Run the Container**:
-
-   ```bash
-   docker run --rm -it self-healing-app
-   ```
-
-### 2. **Start the System with Docker Compose**
-Run the following command to start all services:
 ```bash
-docker-compose up -d
-```
-This will start:
-- **Self-Healing System** for log processing and remedial actions
-- **Prometheus** for metrics collection
-- **Grafana** for real-time visualization
-
-### 3. **Access Prometheus and Grafana**
-- **Prometheus Dashboard:** [http://localhost:9090](http://localhost:9090)
-- **Grafana Dashboard:** [http://localhost:3000](http://localhost:3000)
-  - Username: `admin`
-  - Password: `obinna`
-
-### 4. **Verify Running Containers**
-Ensure that all containers are running:
-```bash
-docker ps
+docker run --rm -it   -v "$(pwd)/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data:/app/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data:ro"   self-healing-app
 ```
 
-### 5. **Check Logs for Debugging**
-If any service fails to start, check logs using:
+### 3) Start the full stack with Docker Compose
+
 ```bash
-docker-compose logs -f
+docker compose up -d
+# classic syntax: docker-compose up -d
 ```
 
-### 6. **Stop and Remove All Services**
-To shut down and remove all running containers:
+This typically starts:
+- **Self-Healing System** (log processing + remediation)
+- **Prometheus** (metrics collection)
+- **Grafana** (visualisation)
+
+### 4) Access dashboards
+
+- **Prometheus:** <http://localhost:9090>  
+- **Grafana:** <http://localhost:3000>  
+  - Default credentials: `admin / admin` (change after first login)
+
+### 5) Logs & lifecycle
+
 ```bash
-docker-compose down
+docker compose logs -f
+docker compose ps
+docker compose down
 ```
 
-### 7. **Adding Prometheus as a Data Source in Grafana**
-To visualize the self-healing system metrics in Grafana:
-1. Open Grafana at [http://localhost:3000](http://localhost:3000).
-2. Login with username `admin` and password `admin`.
-3. Go to **Configuration** > **Data Sources**.
-4. Click **Add data source**.
-5. Select **Prometheus**.
-6. Set the **URL** to `http://prometheus:9090`.
-7. Click **Save & Test**.
-8. If successful, you can now create dashboards using Prometheus metrics.
+### 6) Add Prometheus as a data source in Grafana
 
-### 8. **Import Grafana Dashboard**
-To monitor Kubernetes and Docker performance:
-1. In Grafana, go to **Dashboards** > **Import**.
-2. Enter the dashboard ID **315** (or another relevant ID from Grafana Labs).
-3. Select Prometheus as the data source.
-4. Click **Import** to start visualizing system metrics.
+1. Grafana → **Configuration** → **Data Sources** → **Add data source**  
+2. Choose **Prometheus**  
+3. URL: `http://prometheus:9090`  
+4. **Save & Test**, then build dashboards.
 
-Your Grafana dashboard should now display real-time metrics from the self-healing system, including error counts, warnings, and remedial actions performed.
+### 7) Import a sample Grafana dashboard
 
-## Kubernetes Deployment
+- Grafana Labs ID **315** (or any preferred dashboard)
+- Select Prometheus as data source → **Import**
 
-### 1. Start Kubernetes
+---
 
-If you’re using Minikube, start the cluster:
+## Kubernetes Deployment (optional)
 
 ```bash
+# start a local cluster (e.g., Minikube)
 minikube start
-```
-
-For OrbStack, ensure Kubernetes is enabled and running. Verify the node is ready:
-
-```bash
 kubectl get nodes -o wide
 ```
 
-#### 1.1. Deploy Kubernetes Metrics
+Install Prometheus/Grafana via Helm (example):
+
+```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-helm install kube-state-metrics prometheus-community/kube-state-metrics --namespace kube-system
 
-helm upgrade prometheus prometheus-community/prometheus \
-  --namespace monitoring \
-  --set "serverFiles.prometheus\.yml.scrape_configs[3].static_configs[0].targets[0]=kube-state-metrics.kube-system.svc.cluster.local:8080"
-
-
-
-#### 1.2. Deploy Node-Exporter Metrics
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-helm install node-exporter prometheus-community/prometheus-node-exporter --namespace kube-system
-
-
-
-#### 1.3. Install Prometheus in a namespace (e.g. monitoring)
 kubectl create namespace monitoring
-helm install prometheus prometheus-community/prometheus --namespace monitoring
-
-##### 1.3.1 Verify installation
+helm install prometheus prometheus-community/prometheus -n monitoring
 kubectl get pods -n monitoring
+```
 
+Deploy the application:
 
-##### 1.3.1 Restart command (after install)
-kubectl rollout restart deployment prometheus-server -n monitoring
+```bash
+kubectl apply -f deployment.yaml
+kubectl get pods
+```
 
-
-
-### 2. Deploy the Application
-
-1. Apply the deployment configuration:
-
-   ```bash
-   kubectl apply -f deployment.yaml
-
-   or
-
-   docker-compose -f deployment.yaml up -d
-
-   ```
-
-2. Verify the deployment and pods:
-
-   ```bash
-   kubectl get pods
-   ```
-
-3. Expose the service using NodePort:
-
-   ```bash
-   kubectl expose pod self-healing-container --type=NodePort --port=80
-   ```
-
-### 3. Access Grafana Dashboard
-
-1. Get the **Grafana service port**:
-
-   ```bash
-   kubectl get svc grafana
-   ```
-
-2. Access Grafana at:
-
-   ```
-   http://<INTERNAL-IP>:<NodePort>
-   ```
-
-   Use `admin` as the username and password.
-
-3. Import the Kubernetes Monitoring Dashboard from Grafana Labs by using the **dashboard ID: 315**.
+Expose services as needed (NodePort/Ingress).
 
 ---
 
@@ -235,8 +215,8 @@ kubectl rollout restart deployment prometheus-server -n monitoring
 ├── self-healing-trigger/
 │   ├── classify-errors-and-trigger-self-healing.py
 │   ├── dataset/
-│   │   ├── <log files>
-│   ├── <other scripts>
+│   │   └── system-logs/multiple-system-log-dataset/preprocessed-data/   # ← put CSVs here
+│   └── ...
 ├── requirements.txt
 ├── Dockerfile
 ├── deployment.yaml
@@ -245,8 +225,10 @@ kubectl rollout restart deployment prometheus-server -n monitoring
 ├── README.md
 ```
 
+> If you run into a “missing file/directory” message, ensure the **preprocessed-data** folder exists and contains CSVs from the Zenodo DOI.
+
 ---
 
-## License
+## Licence
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+MIT — see `LICENSE`.
