@@ -35,7 +35,7 @@ The preprocessed dataset used for experiments (multi-platform logs + features) i
 
 ---
 
-## 🔁 Reproducibility (No Code Changes)
+## 🔁 Reproducibility 
 
 CROSS expects the **preprocessed logs** to be available inside the repository at:
 
@@ -120,7 +120,24 @@ mkdir -p self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/pr
 # copy Zenodo CSVs into that folder
 ```
 
+
+## 🚀 Running the Self-Healing Trigger Script Manually (Local Machine)
+
+The main remediation engine is:
+
+self-healing-trigger/classify-errors-and-trigger-self-healing.py
+
+
+Because the script uses **relative paths**, you MUST run it from inside the `self-healing-trigger/` directory:
+
+```bash
+cd self-healing-trigger
+python3 classify-errors-and-trigger-self-healing.py
 ---
+
+If run from any other directory, you will get:
+Error: The directory dataset/system-logs/multiple-system-log-dataset/preprocessed-data does not exist.
+
 
 ## Running the Self-Healing System, Grafana, and Prometheus
 

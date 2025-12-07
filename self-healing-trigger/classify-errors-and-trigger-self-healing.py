@@ -142,7 +142,7 @@ def process_logs():
     print("Starting the self-healing application...")
 
     # Define the preprocessed log directory
-    preprocessed_dir = '/app/self-healing-trigger/dataset/system-logs/multiple-system-log-dataset/preprocessed-data'
+    preprocessed_dir = 'dataset/system-logs/multiple-system-log-dataset/preprocessed-data'
 
     # Check if the directory exists
     if not os.path.exists(preprocessed_dir):
